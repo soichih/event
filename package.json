@@ -1,0 +1,33 @@
+{
+  "name": "sca-event",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec",
+    "start": "node api/event.js",
+    "apidoc": "apidoc -i api/ -o ui/apidoc/",
+    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soichih/sca-event.git"
+  },
+  "author": "Soichi Hayashi <hayashis@iu.edu> (http://soichi.us)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/soichih/sca-event/issues"
+  },
+  "homepage": "https://github.com/soichih/sca-event#readme",
+  "dependencies": {
+    "amqp": "^0.2.6",
+    "body-parser": "^1.15.2",
+    "compression": "^1.6.2",
+    "cors": "^2.7.1",
+    "express": "^4.14.0",
+    "express-jwt": "^3.4.0",
+    "express-winston": "^2.0.0",
+    "express-ws": "^2.0.0",
+    "winston": "^2.2.0"
+  }
+}
