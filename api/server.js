@@ -52,6 +52,18 @@ process.on('uncaughtException', function (err) {
 
 exports.app = app;
 exports.start = function(cb) {
+    //connect to amqp
+    var amqp_conn = amqp.createConnection(config.event.amqp, {reconnectBackoffTime: 1000*10});
+    amqp_conn.on('ready', function() {
+        logger.info("amqp connection ready");
+        exports.amqp = amqp_conn;
+    });
+    amqp_conn.on('error', function(err) {
+        logger.error("amqp connection error");
+        logger.error(err);
+        exports.amqp = null; //should I?
+    });
+
     var port = process.env.PORT || config.express.port || '8081';
     var host = process.env.HOST || config.express.host || 'localhost';
     app.listen(port, host, function() {

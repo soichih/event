@@ -1,12 +1,16 @@
 'use strict';
 
 //contrib
-var express = require('express');
-var router = express.Router();
-var jwt = require('express-jwt');
+const express = require('express');
+const router = express.Router();
+const expressjwt = require('express-jwt');
+const jsonwebtoken = require('jsonwebtoken');
+const winston = require('winston');
 
 //mine
-var config = require('./config');
+const config = require('./config');
+const server = require('./server');
+const logger = new winston.Logger(config.logger.winston);
 
 /**
  * @apiGroup Event
@@ -17,19 +21,62 @@ var config = require('./config');
  * @apiSuccess {String} status 'ok' or 'failed'
  */
 router.get('/health', function(req, res) {
-    res.json({status: 'ok'});
+    res.json({status: 'ok', amqp_connection: server.amqp?true:false});
 });
 
 /**
  * @apiGroup Event
- * @api {ws} /echo  Echo
- * @apiDescription  ('messasge') Echo back message sent 
- * @apiName WSEcho
+ * @apiName Subscribe
+ * @api {ws} /:exchange Subscribe to configured exchange
+ * @apiParam {String} jwt Authorization token
+ * @apiDescription      Subscribe to specified exchange with routing keys authorized in your access token
  */
-router.ws('/echo', function(ws, req) {
-    ws.on('message', function(msg) {
-        ws.send(msg);
+//setup ws router for each exchange configured
+for(var exchange in config.event.exchanges) {
+    var pubkey = config.event.exchanges[exchange];
+
+    router.ws('/'+exchange, (ws, req) => {
+        jsonwebtoken.verify(req.query.jwt, pubkey, (err, token) => {
+            if(err) {
+                logger.error(err);
+                //ws.disconnect();
+                return;
+            }
+            logger.debug("wsconnection received and token verified");
+            logger.debug(token);
+            
+            //send welcome package
+            //ws.send(JSON.stringify({action: 'welcome', user: user}));
+
+            //create a new queue
+            if(!server.amqp) {
+                logger.error("amqp not connected.. sorry but need to disconnect client");
+                //ws.disconnect();
+                return;
+            }
+
+            var _q = null;
+            server.amqp.queue('', {exclusive: true}, function(q) {
+                _q = q;
+                token.keys.forEach(function(key) {
+                    q.bind(token.exchange, key); //async ok?
+                });
+                q.subscribe(function(msg, headers, dinfo, msgobj) {
+                    ws.send(JSON.stringify(msg));
+                });
+            });
+            
+            /*
+            ws.on('message', function(msg) {
+                //ignore message from client for now..
+            });
+            */
+            ws.on('close', function(msg) {
+                logger.info("client disconnected");
+                _q.destroy();
+            });
+        });
     });
-});
+}
 
 module.exports = router;

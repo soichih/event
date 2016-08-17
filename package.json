@@ -28,6 +28,7 @@
     "express-jwt": "^3.4.0",
     "express-winston": "^2.0.0",
     "express-ws": "^2.0.0",
+    "jsonwebtoken": "^7.1.9",
     "winston": "^2.2.0"
   }
 }

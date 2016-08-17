@@ -4,11 +4,15 @@ const fs = require('fs');
 const winston = require('winston');
 
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
-
 exports.event = {
-
     amqp: {
         url: "amqp://event:eventpass123@localhost:5672/sca"
+    },
+    
+    //list of exchanges that this service supports (and jwt token to trust)
+    exchanges: {
+        wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
+        other: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
     }
 }
 
@@ -23,7 +27,7 @@ exports.express = {
     host: "localhost",
 
     //public key used to validate user requests
-    jwt: fs.readFileSync('/home/hayashis/git/auth/api/config/auth.pub'),
+    //jwt: fs.readFileSync('/home/hayashis/git/auth/api/config/auth.pub'),
 }
 
 exports.logger = {
