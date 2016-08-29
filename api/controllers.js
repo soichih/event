@@ -30,12 +30,19 @@ router.get('/health', function(req, res) {
  * @api {ws} /:exchange Subscribe to configured exchange
  * @apiParam {String} jwt Authorization token
  * @apiDescription      Subscribe to specified exchange with routing keys authorized in your access token
+ *                      For example, following token allows you to subscribe to all event that matches 
+ *                      routing key "task.12456abcde.*"
+ *                      {
+ *                          "exchange": "wf",
+ *                          "keys": [ "task.123456abcde.*" ],
+ *                      }
  */
 //setup ws router for each exchange configured
 for(var exchange in config.event.exchanges) {
     var pubkey = config.event.exchanges[exchange];
 
     router.ws('/'+exchange, (ws, req) => {
+        //console.dir(ws);
         jsonwebtoken.verify(req.query.jwt, pubkey, (err, token) => {
             if(err) {
                 logger.error(err);
@@ -56,13 +63,15 @@ for(var exchange in config.event.exchanges) {
             }
 
             var _q = null;
-            server.amqp.queue('', {exclusive: true}, function(q) {
+            server.amqp.queue('', {exclusive: true}, (q) => {
                 _q = q;
                 token.keys.forEach(function(key) {
                     q.bind(token.exchange, key); //async ok?
                 });
                 q.subscribe(function(msg, headers, dinfo, msgobj) {
-                    ws.send(JSON.stringify(msg));
+                    ws.send(JSON.stringify(msg), function(err) {
+                        if(err) logger.error(err);
+                    });
                 });
             });
             

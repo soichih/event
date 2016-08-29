@@ -52,7 +52,7 @@ process.on('uncaughtException', function (err) {
 
 exports.app = app;
 exports.start = function(cb) {
-    //connect to amqp
+    logger.info("connecting to amqp");
     var amqp_conn = amqp.createConnection(config.event.amqp, {reconnectBackoffTime: 1000*10});
     amqp_conn.on('ready', function() {
         logger.info("amqp connection ready");
