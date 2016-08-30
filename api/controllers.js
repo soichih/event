@@ -13,10 +13,9 @@ const server = require('./server');
 const logger = new winston.Logger(config.logger.winston);
 
 /**
- * @apiGroup Event
+ * @apiGroup System
  * @api {get} /health Get API status
  * @apiDescription Get current API status
- * @apiName GetHealth
  *
  * @apiSuccess {String} status 'ok' or 'failed'
  */
@@ -26,66 +25,62 @@ router.get('/health', function(req, res) {
 
 /**
  * @apiGroup Event
- * @apiName Subscribe
- * @api {ws} /:exchange Subscribe to configured exchange
- * @apiParam {String} jwt Authorization token
- * @apiDescription      Subscribe to specified exchange with routing keys authorized in your access token
- *                      For example, following token allows you to subscribe to all event that matches 
- *                      routing key "task.12456abcde.*"
- *                      {
- *                          "exchange": "wf",
- *                          "keys": [ "task.123456abcde.*" ],
- *                      }
+ * @api {get} /subscribe Subscribe
+ * @apiParam {String} jwt JWT token to be relayed to event source. Should be a JWT token issued by SCA Auth service.
+ * @apiDescription 
+ *      Subscribe to AMQP. Once connected, you need to emit bind messages to bind to specific exchange:key.
+ *      {
+ *          "bind": { 
+ *              "ex": "wf",
+ *              "key": "task.123455.#",
+ *          }
+ *      }
+ *      You will receive an error event if you are not authorized
+ *      
  */
-//setup ws router for each exchange configured
-for(var exchange in config.event.exchanges) {
-    var pubkey = config.event.exchanges[exchange];
+router.ws('/subscribe', (ws, req) => {
 
-    router.ws('/'+exchange, (ws, req) => {
-        //console.dir(ws);
-        jsonwebtoken.verify(req.query.jwt, pubkey, (err, token) => {
-            if(err) {
-                logger.error(err);
-                //ws.disconnect();
-                return;
-            }
-            logger.debug("wsconnection received and token verified");
-            logger.debug(token);
-            
-            //send welcome package
-            //ws.send(JSON.stringify({action: 'welcome', user: user}));
-
-            //create a new queue
-            if(!server.amqp) {
-                logger.error("amqp not connected.. sorry but need to disconnect client");
-                //ws.disconnect();
-                return;
-            }
-
-            var _q = null;
-            server.amqp.queue('', {exclusive: true}, (q) => {
-                _q = q;
-                token.keys.forEach(function(key) {
-                    q.bind(token.exchange, key); //async ok?
-                });
-                q.subscribe(function(msg, headers, dinfo, msgobj) {
-                    ws.send(JSON.stringify(msg), function(err) {
-                        if(err) logger.error(err);
-                    });
-                });
-            });
-            
-            /*
-            ws.on('message', function(msg) {
-                //ignore message from client for now..
-            });
-            */
-            ws.on('close', function(msg) {
-                logger.info("client disconnected");
-                _q.destroy();
+    //create exclusive queue and subscribe
+    var _q = null;
+    server.amqp.queue('', {exclusive: true}, (q) => {
+        _q = q;
+        q.subscribe(function(msg, headers, dinfo, msgobj) {
+            ws.send(JSON.stringify({msg: msg}), function(err) {
+                if(err) logger.error(err);
             });
         });
     });
-}
+
+    ws.on('close', function(msg) {
+        logger.info("client disconnected");
+        _q.destroy();
+    });
+
+    ws.on('message', function(json) {
+        var msg = JSON.parse(json); 
+        if(msg.bind) bind(msg);
+    });
+
+    function bind(msg) {
+        //logger.debug("bind request received");
+        //logger.debug(msg);
+
+        //TODO - should I handle keys as well as just key?
+        var ex = msg.bind.ex;
+        var key = msg.bind.key;
+        if(!config.event.exchanges[ex]) return logger.warn("unconfigured bind request for exchange:"+ex);
+        var access_check = config.event.exchanges[ex];
+        access_check(req, key, function(err, ok) {
+            if(err) return logger.error(err);
+            if(ok) {
+                logger.debug("access granted");
+                _q.bind(ex, key); 
+            } else {
+                logger.debug("access denied");
+                ws.send(JSON.stringify({error: "Access failed for ex:"+ex+" key:"+key}));
+            }
+        });
+    }
+});
 
 module.exports = router;

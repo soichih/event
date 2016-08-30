@@ -2,6 +2,9 @@
 
 const fs = require('fs');
 const winston = require('winston');
+const request = require('request');
+
+var sca_host = "https://soichi7.ppa.iu.edu";
 
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
 exports.event = {
@@ -11,8 +14,20 @@ exports.event = {
     
     //list of exchanges that this service supports (and jwt token to trust)
     exchanges: {
-        wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
+        //wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
         //other: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
+
+        wf: function(req, key, cb) {
+            //console.log("checking access for "+ex+":"+key);
+            request.get({
+                url: sca_host+"/api/wf/event/checkaccess/"+key,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                //console.dir(body);
+                cb(err, (body.status == "ok"));
+            });
+        }
     }
 }
 
