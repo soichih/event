@@ -34,7 +34,7 @@ eventws.onmessage = function(e) {
 
 ## Server Side Things
 
-SCA service relays user's JWT to configured access check API of the event source. For example "wf" exchange maybe configured with following.
+SCA Event service relays user's JWT to event source to check to make sure user is allowed to bind to such key. It uses configured access check API URL of an event source. For example "wf" exchange maybe configured with following.
 
 ```javascript
 exports.event = {
@@ -56,6 +56,18 @@ exports.event = {
 ```
 
 Above configuration tells SCA event service that, it should accept request for "wf" exchange binding, and for such bind request check user's access for the exchange and specified key using Workflow service's /event/checkaccess/:key API. The URL of API and format of key are specific to each event source services. Please read the documentation for each services.
+
+If you'd like to allow public access (no jwt) to specific exchange / key, you could configure something like following make it open to everyone.
+
+```javascript
+{
+    exchanges: {
+        public: function(req, key, cb) {
+            cb(null, true);
+        }
+    }
+}
+```
 
 ## API DOC
 
