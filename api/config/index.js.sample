@@ -17,10 +17,10 @@ exports.event = {
         //wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
         //other: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
 
-        wf: function(req, key, cb) {
+        "wf.task": function(req, key, cb) {
             //console.log("checking access for "+ex+":"+key);
             request.get({
-                url: sca_host+"/api/wf/event/checkaccess/"+key,
+                url: sca_host+"/api/wf/event/checkaccess/task/"+key,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
