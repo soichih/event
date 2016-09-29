@@ -4,7 +4,7 @@ const fs = require('fs');
 const winston = require('winston');
 const request = require('request');
 
-var sca_host = "https://soichi7.ppa.iu.edu";
+const sca_host = "https://soichi7.ppa.iu.edu";
 
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
 exports.event = {
@@ -12,19 +12,33 @@ exports.event = {
         url: "amqp://event:eventpass123@soichi7.ppa:5672/sca"
     },
     
-    //list of exchanges that this service supports (and jwt token to trust)
+    //list of exchanges that this service supports and check_access cb
+    //in check_access, you can make 3rd party api call to check for user access
+    //or just check the jwt sent from the client (TODO is this really possible via websocket?)
     exchanges: {
         //wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
         //other: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
 
         "wf.task": function(req, key, cb) {
-            //console.log("checking access for "+ex+":"+key);
+            //checking access for key
             request.get({
                 url: sca_host+"/api/wf/event/checkaccess/task/"+key,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
-                //console.dir(body);
+                cb(err, (body.status == "ok"));
+            });
+        },
+
+        "dicom.series": function(req, key, cb) {
+            //checking access for key
+            console.log("checking dicom.series access for "+key);
+            request.get({
+                url: sca_host+"/api/dicom/event/checkaccess/series/"+key,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                console.dir(body);
                 cb(err, (body.status == "ok"));
             });
         }

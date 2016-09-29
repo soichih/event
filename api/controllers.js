@@ -45,7 +45,11 @@ router.ws('/subscribe', (ws, req) => {
     server.amqp.queue('', {exclusive: true}, (q) => {
         _q = q;
         q.subscribe(function(msg, headers, dinfo, msgobj) {
-            ws.send(JSON.stringify({msg: msg}), function(err) {
+            ws.send(JSON.stringify({
+                headers: headers,
+                dinfo: dinfo,
+                msg: msg
+            }), function(err) {
                 if(err) logger.error(err);
             });
         });
@@ -73,10 +77,11 @@ router.ws('/subscribe', (ws, req) => {
         access_check(req, key, function(err, ok) {
             if(err) return logger.error(err);
             if(ok) {
-                logger.debug("access granted");
+                //logger.debug("access granted");
                 _q.bind(ex, key); 
             } else {
                 logger.debug("access denied");
+                logger.debug(err);
                 ws.send(JSON.stringify({error: "Access failed for ex:"+ex+" key:"+key}));
             }
         });
