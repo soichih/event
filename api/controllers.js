@@ -40,6 +40,11 @@ router.get('/health', function(req, res) {
  */
 router.ws('/subscribe', (ws, req) => {
 
+    if(!server.amqp) {
+        ws.send(JSON.stringify({error: "amqp not connected"});
+        return;
+    }
+
     //create exclusive queue and subscribe
     var _q = null;
     server.amqp.queue('', {exclusive: true}, (q) => {
