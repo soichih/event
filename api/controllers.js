@@ -41,7 +41,7 @@ router.get('/health', function(req, res) {
 router.ws('/subscribe', (ws, req) => {
 
     if(!server.amqp) {
-        ws.send(JSON.stringify({error: "amqp not connected"});
+        ws.send(JSON.stringify({error: "amqp not connected"}));
         return;
     }
 
