@@ -58,6 +58,7 @@ router.ws('/subscribe', (ws, req) => {
     ws.on('close', function(msg) {
         logger.info("client disconnected");
         _q.destroy();
+        _q = null;
     });
 
     ws.on('message', function(json) {
@@ -77,8 +78,8 @@ router.ws('/subscribe', (ws, req) => {
         access_check(req, key, function(err, ok) {
             if(err) return logger.error(err);
             if(ok) {
-                //logger.debug("access granted");
-                _q.bind(ex, key); 
+                //bind if client is still connected (sometimes they disappear)
+                if(_q) _q.bind(ex, key); 
             } else {
                 logger.debug("access denied");
                 logger.debug(err);
