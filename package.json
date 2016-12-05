@@ -23,13 +23,13 @@
     "amqp": "^0.2.6",
     "body-parser": "^1.15.2",
     "compression": "^1.6.2",
-    "cors": "^2.7.1",
+    "cors": "^2.8.1",
     "express": "^4.14.0",
-    "express-jwt": "^3.4.0",
-    "express-winston": "^2.0.0",
+    "express-jwt": "^5.1.0",
+    "express-winston": "^2.1.0",
     "express-ws": "^2.0.0",
     "jsonwebtoken": "^7.1.9",
-    "request": "^2.74.0",
-    "winston": "^2.2.0"
+    "request": "^2.79.0",
+    "winston": "^2.3.0"
   }
 }
