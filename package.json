@@ -21,6 +21,7 @@
   "homepage": "https://github.com/soichih/sca-event#readme",
   "dependencies": {
     "amqp": "^0.2.6",
+    "async": "^2.1.4",
     "body-parser": "^1.15.2",
     "compression": "^1.6.2",
     "cors": "^2.8.1",
@@ -29,7 +30,12 @@
     "express-winston": "^2.1.0",
     "express-ws": "^2.0.0",
     "jsonwebtoken": "^7.1.9",
+    "mongoose": "^4.7.2",
+    "nodemailer": "^2.7.0",
     "request": "^2.79.0",
     "winston": "^2.3.0"
+  },
+  "devDependencies": {
+    "supertest": "^2.0.1"
   }
 }

@@ -16,6 +16,7 @@ const amqp = require('amqp');
 //mine
 const config = require('./config');
 const logger = new winston.Logger(config.logger.winston);
+const db = require('./models');
 
 //init express
 const app = express();
@@ -55,6 +56,7 @@ exports.start = function(cb) {
     logger.info("connecting to amqp");
     var amqp_conn = amqp.createConnection(config.event.amqp, {reconnectBackoffTime: 1000*10});
     amqp_conn.on('ready', function() {
+        //this could get called many times
         logger.info("amqp connection ready");
         exports.amqp = amqp_conn;
     });
@@ -66,8 +68,12 @@ exports.start = function(cb) {
 
     var port = process.env.PORT || config.express.port || '8081';
     var host = process.env.HOST || config.express.host || 'localhost';
-    app.listen(port, host, function() {
-        logger.info("sca webui/api service running on %s:%d in %s mode", host, port, app.settings.env);
+    db.init(function(err) {
+        if(err) return cb(err);
+        //TODO wait tuntil amqp gets ready?
+        app.listen(port, host, function() {
+            logger.info("event service running on %s:%d in %s mode", host, port, app.settings.env);
+        });
     });
 }
 

@@ -3,14 +3,16 @@
 //contrib
 const express = require('express');
 const router = express.Router();
-const expressjwt = require('express-jwt');
-const jsonwebtoken = require('jsonwebtoken');
+//const jwt = require('express-jwt');
+//const jsonwebtoken = require('jsonwebtoken');
 const winston = require('winston');
 
 //mine
-const config = require('./config');
-const server = require('./server');
+const config = require('../config');
+const server = require('../server');
 const logger = new winston.Logger(config.logger.winston);
+
+router.use('/notification', require('./notification'));
 
 /**
  * @apiGroup System
@@ -93,5 +95,6 @@ router.ws('/subscribe', (ws, req) => {
         });
     }
 });
+
 
 module.exports = router;

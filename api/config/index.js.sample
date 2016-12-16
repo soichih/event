@@ -6,6 +6,13 @@ const request = require('request');
 
 const sca_host = "https://soichi7.ppa.iu.edu";
 
+exports.sca = {
+    auth_api: "https://soichi7.ppa.iu.edu/api/auth",
+
+    //jwt token used to access other services (like auth service)
+    jwt: fs.readFileSync(__dirname+'/sca.jwt'),
+}
+
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
 exports.event = {
     amqp: {
@@ -45,18 +52,26 @@ exports.event = {
     }
 }
 
+exports.handler = {
+    email: {
+        from: "hayashis@iu.edu",
+    }
+}
+
 //you need to allow websocket upgrade on your webserver if you are proxying
 //(nginx)
 //proxy_set_header Upgrade $http_upgrade;
 //proxy_set_header Connection "upgrade";
 //proxy_set_header Host $host;
 
+exports.mongodb = "mongodb://localhost/event";
+
 exports.express = {
     port: 12348,
     //host: "soichi7.ppa",
 
     //public key used to validate user requests
-    //jwt: fs.readFileSync('/home/hayashis/git/auth/api/config/auth.pub'),
+    pubkey: fs.readFileSync('/home/hayashis/git/auth/api/config/auth.pub'),
 }
 
 exports.logger = {
