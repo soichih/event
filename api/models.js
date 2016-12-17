@@ -36,7 +36,7 @@ var notificationSchema = mongoose.Schema({
 
     create_date: {type: Date, default: Date.now },
     update_date: {type: Date, default: Date.now }, //not sure if I will use this
-    trigger_date: {type: Date, default: Date.now }, //date which this notification was last triggered
+    trigger_date: Date,
 });
 exports.Notification = mongoose.model('Notification', notificationSchema);
 

@@ -58,10 +58,13 @@ router.get('/', jwt({secret: config.express.pubkey}), function(req, res, next) {
 
 router.post('/', jwt({secret: config.express.pubkey}), function(req, res, next) {
     var notification = new db.Notification(req.body);
+    notification.user_id = req.user.sub; 
+    /* broken..
     if(!req.user.scopes.sca || !~req.user.scopes.sca.indexOf("admin")) {
         //logger.debug("overriding user_id ");
         notification.user_id = req.user.sub; //for non-admin, it gets set to user_id
     }
+    */
     //TODO validate event /handler?
 
     notification.save(function(err, _notification) {
