@@ -56,6 +56,19 @@ router.get('/', jwt({secret: config.express.pubkey}), function(req, res, next) {
     });
 });
 
+/**
+ * @apiGroup Notification
+ * @api {post} /notification 
+ * @apiDescription Register new notification request
+ *
+ * @apiHeader {String} authorization A valid JWT token "Bearer: xxxxx"
+ *
+ * @apiParam {String} event Event name (like "wf.task")
+ * @apiParam {String} handler Handler name (like "email")
+ * @apiParam {Object} config Detail for this notification (event/handler specific - please read README)
+ * 
+ * @apiSuccess {Object} Notification object registered
+ */
 router.post('/', jwt({secret: config.express.pubkey}), function(req, res, next) {
     var notification = new db.Notification(req.body);
     notification.user_id = req.user.sub; 

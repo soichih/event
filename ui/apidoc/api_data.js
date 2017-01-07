@@ -109,6 +109,70 @@ define({ "api": [
     "name": "GetNotification"
   },
   {
+    "group": "Notification",
+    "type": "post",
+    "url": "/notification",
+    "title": "",
+    "description": "<p>Register new notification request</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "authorization",
+            "description": "<p>A valid JWT token &quot;Bearer: xxxxx&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "event",
+            "description": "<p>Event name (like &quot;wf.task&quot;)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "handler",
+            "description": "<p>Handler name (like &quot;email&quot;)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "config",
+            "description": "<p>Detail for this notification (event/handler specific - please read README)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "Notification",
+            "description": "<p>object registered</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "api/controllers/notification.js",
+    "groupTitle": "Notification",
+    "name": "PostNotification"
+  },
+  {
     "group": "System",
     "type": "get",
     "url": "/health",

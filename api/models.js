@@ -32,7 +32,7 @@ var notificationSchema = mongoose.Schema({
 
     event: String, //event which will trigger this notification
     handler: String, //handle which should process this notification when triggered
-    config: mongoose.Schema.Types.Mixed,
+    config: mongoose.Schema.Types.Mixed, //other notification details provided by user
 
     create_date: {type: Date, default: Date.now },
     update_date: {type: Date, default: Date.now }, //not sure if I will use this

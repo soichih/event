@@ -9,8 +9,9 @@ For example, SCA Workflow service publishes task events to AMQP.
 
 ## Client/UI Side Things
 
-On the Web UI, you can start receiving messages by connecting to this service via WebSocket.
+### Event Streaming
 
+On the Web UI, you can start receiving messages by connecting to this service via WebSocket.
 
 ```javascript
 var jwt = localStorage.getItem("jwt");
@@ -29,8 +30,32 @@ eventws.onmessage = function(e) {
     console.log([task._id, task.status, task.status_msg, task.next_date]);
 }
 ```
-
 * I am using [ReconnectingWebSocket](https://github.com/joewalnes/reconnecting-websocket) instead of the plain WebSocket to automate reconnection.
+
+### Notification
+
+You can make a request to send user a notification message when certain event occurs.
+
+```
+$http.post("https://test.sca.iu.edu/api/event/notification", {
+    event: "wf.task.finished",
+    handler: "email",
+    config: {
+        task_id: "1234567abc",
+        subject: "Email subject",
+        message: "Hello!\n\nI'd like to inform you that your connectome evaluator workflow has completed.\n\nPlease visit https://somewhere/1234456 and view your evaluation result.",
+    },
+})
+
+```
+
+`event` field specifies type of event that will trigger your notification. 
+
+* wf.task.finished - Triggered when SCA Workflow service completes a task successfully. You must specify `task_id` in config object.
+
+`handler` field specifies event handler to run when an event occures. 
+
+* email - Send email to the user (who made this notification request). You must specify `subject` and `message` fields in config object.
 
 ## Server Side Things
 
