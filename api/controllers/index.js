@@ -6,6 +6,7 @@ const router = express.Router();
 //const jwt = require('express-jwt');
 //const jsonwebtoken = require('jsonwebtoken');
 const winston = require('winston');
+const mongoose = require('mongoose');
 
 //mine
 const config = require('../config');
@@ -22,7 +23,10 @@ router.use('/notification', require('./notification'));
  * @apiSuccess {String} status 'ok' or 'failed'
  */
 router.get('/health', function(req, res) {
-    res.json({status: 'ok', amqp_connection: server.amqp?true:false});
+    var status = "ok";
+    if(mongoose.connection.readyState != 1) status = "failed";
+    if(!server.amqp) status = "failed";
+    res.json({status: status, amqp_connection: server.amqp?true:false, mongoose: mongoose.connection.readyState});
 });
 
 /**

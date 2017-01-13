@@ -23,6 +23,7 @@ var amqp_ready = false;
 var task_q = null;
 
 var mail_transporter = nodemailer.createTransport();
+logger.debug("debug");
 
 db.init(function(err) {
     if(err) return cb(err);
@@ -76,11 +77,14 @@ function task_finished(task, cb) {
 }
 
 function handle_task(notification, task, cb) {
-    logger.info("handing task");
+
+    logger.info("handling task");
     logger.debug(JSON.stringify(notification, null, 4));
     logger.debug(task);
+
     switch(notification.handler) {
-    case "email": handle_task_email(notification.config, task, cb); break;
+    case "email": 
+        handle_task_email(notification.config, task, cb); break;
     default:
         return cb("unknown notification handler:"+notification.handler);
     }
