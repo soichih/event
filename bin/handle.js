@@ -35,12 +35,10 @@ db.init(function(err) {
         //create queue to listen to events
         amqp_conn.queue('', {exclusive: true}, (q) => {
             q.subscribe(function(msg, headers, dinfo, msgobj) {
-                if(msg.status == "finished") {
-                    task_finished(msg, function(err) {
-                        if(err) logger.error(err); //continue
-                        logger.debug("finished task handled "+msg._id);
-                    });
-                }
+                handle(msg, msg.status, function(err) {
+                    if(err) logger.error(err); //continue
+                    logger.debug("task handled "+msg._id+" status: "+msg.status);
+                });
             });
             //bind to all..
             q.bind("wf.task", "#");
@@ -54,11 +52,10 @@ db.init(function(err) {
     });
 });
 
-
-function task_finished(task, cb) {
+function handle(task, status, cb) {
     //query for notification waiting for this task complete
     db.Notification.find({
-        event: "wf.task.finished", 
+        event: "wf.task."+status, 
         user_id: task.user_id,
         trigger_date: { $exists: false },
         "config.task_id": task._id,
@@ -72,16 +69,13 @@ function task_finished(task, cb) {
                 handle_task(notification, task, next);
             });
         }, cb);
-        
     });    
 }
 
 function handle_task(notification, task, cb) {
-
     logger.info("handling task");
     logger.debug(JSON.stringify(notification, null, 4));
     logger.debug(task);
-
     switch(notification.handler) {
     case "email": 
         handle_task_email(notification.config, task, cb); break;
