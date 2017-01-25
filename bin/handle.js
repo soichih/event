@@ -53,7 +53,8 @@ db.init(function(err) {
 });
 
 function handle(task, status, cb) {
-    //query for notification waiting for this task complete
+
+    //user waiting for his/her own task update (only triggered once)
     db.Notification.find({
         event: "wf.task."+status, 
         user_id: task.user_id,
@@ -70,6 +71,20 @@ function handle(task, status, cb) {
             });
         }, cb);
     });    
+
+    /*
+    //user waiting for recurring event
+    db.Notification.find({
+        event: "wf.task."+status, 
+        //"config.workflow": task._id,
+    })
+    .exec(function(err, notifications) {
+        if(err) return cb(err);
+        async.eachSeries(notifications, function(notification, next) {
+            handle_task(notification, task, next);
+        }, cb);
+    });    
+    */
 }
 
 function handle_task(notification, task, cb) {
