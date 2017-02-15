@@ -38,5 +38,6 @@ var notificationSchema = mongoose.Schema({
     update_date: {type: Date, default: Date.now }, //not sure if I will use this
     trigger_date: Date,
 });
+notificationSchema.index({ user_id: 1, event: 1 }); 
 exports.Notification = mongoose.model('Notification', notificationSchema);
 

@@ -26,7 +26,7 @@ var mail_transporter = nodemailer.createTransport();
 logger.debug("debug");
 
 db.init(function(err) {
-    if(err) return cb(err);
+    if(err) throw err;
     logger.info("db connected");
     amqp_conn.on('ready', function() {
         amqp_ready = true;
@@ -55,12 +55,16 @@ db.init(function(err) {
 function handle(task, status, cb) {
 
     //user waiting for his/her own task update (only triggered once)
-    db.Notification.find({
-        event: "wf.task."+status, 
+    var query = {
         user_id: task.user_id,
+        event: "wf.task."+status, 
         trigger_date: { $exists: false },
-        "config.task_id": task._id,
-    })
+        $or: [
+            {"config.task_id": task._id},
+            {"config.instance_id": task.instance_id},
+        ]
+    };
+    db.Notification.find(query)
     .exec(function(err, notifications) {
         if(err) return cb(err);
         async.eachSeries(notifications, function(notification, next) {
