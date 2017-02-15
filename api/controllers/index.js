@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const config = require('../config');
 const server = require('../server');
 const logger = new winston.Logger(config.logger.winston);
+const db = require('../models');
 
 router.use('/notification', require('./notification'));
 
@@ -23,10 +24,29 @@ router.use('/notification', require('./notification'));
  * @apiSuccess {String} status 'ok' or 'failed'
  */
 router.get('/health', function(req, res) {
-    var status = "ok";
-    if(mongoose.connection.readyState != 1) status = "failed";
-    if(!server.amqp) status = "failed";
-    res.json({status: status, amqp_connection: server.amqp?true:false, mongoose: mongoose.connection.readyState});
+    var ret = {
+        status: "ok",
+        amqp_connection: server.amqp?true:false, 
+        mongoose: mongoose.connection.readyState
+    }
+    if(mongoose.connection.readyState != 1) ret.status = "failed";
+    if(!server.amqp) ret.status = "failed";
+
+    //do real db test
+    db.Notification.findOne().exec(function(err, record) {
+        if(err) {
+            ret.status = "failed";
+            ret.message = err;
+        }
+        /* - not necessary?
+        if(!record) {
+            ret.status = "failed";
+            ret.message = "no instance from db";
+        }
+        */
+        if(ret.status != "ok") logger.debug(ret);
+        res.json(ret);
+    });
 });
 
 /**
