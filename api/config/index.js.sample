@@ -28,8 +28,21 @@ exports.event = {
 
         "wf.task": function(req, key, cb) {
             //checking access for key
+	    var sub = key.split(".")[0];
             request.get({
-                url: sca_host+"/api/wf/event/checkaccess/task/"+key,
+                url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                cb(err, (body.status == "ok"));
+            });
+        },
+
+        "wf.instance": function(req, key, cb) {
+            //checking access for key
+	    var sub = key.split(".")[0];
+            request.get({
+                url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
@@ -54,15 +67,9 @@ exports.event = {
 
 exports.handler = {
     email: {
-        from: "hayashis@iu.edu",
+        from: "brlife@iu.edu",
     }
 }
-
-//you need to allow websocket upgrade on your webserver if you are proxying
-//(nginx)
-//proxy_set_header Upgrade $http_upgrade;
-//proxy_set_header Connection "upgrade";
-//proxy_set_header Host $host;
 
 exports.mongodb = "mongodb://localhost/event";
 
@@ -88,14 +95,6 @@ exports.logger = {
                 colorize: true,
                 level: 'debug'
             }),
-
-            /*
-            //store all warnings / errors in error.log
-            new (winston.transports.File)({ 
-                filename: '/var/log/sca/error.log',
-                level: 'warn'
-            })
-            */
         ]
     },
 }
