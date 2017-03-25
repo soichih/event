@@ -3,8 +3,6 @@
 //contrib
 const express = require('express');
 const router = express.Router();
-//const jwt = require('express-jwt');
-//const jsonwebtoken = require('jsonwebtoken');
 const winston = require('winston');
 const mongoose = require('mongoose');
 
@@ -89,7 +87,7 @@ router.ws('/subscribe', (ws, req) => {
 
     ws.on('close', function(msg) {
 	if(!_q) {
-	    logger.info("websocket disconnected but client never subscribed"):
+	    logger.info("websocket disconnected but client never subscribed");
 	    return;
 	}
         logger.info("client disconnected", _q.name);
@@ -117,9 +115,8 @@ router.ws('/subscribe', (ws, req) => {
                 //bind if client is still connected (sometimes they disappear)
                 if(_q) _q.bind(ex, key); 
             } else {
-                logger.debug("access denied");
-                logger.debug(err);
-                ws.send(JSON.stringify({error: "Access failed for ex:"+ex+" key:"+key}));
+                logger.debug("access denied", ex, key, req.query);
+                ws.send(JSON.stringify({error: "Access denided for ex:"+ex+" key:"+key}));
             }
         });
     }
