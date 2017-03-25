@@ -74,6 +74,7 @@ router.ws('/subscribe', (ws, req) => {
     //create exclusive queue and subscribe
     var _q = null;
     server.amqp.queue('', {exclusive: true}, (q) => {
+        logger.info("client subscribed", q.name);
         _q = q;
         q.subscribe(function(msg, headers, dinfo, msgobj) {
             ws.send(JSON.stringify({
@@ -87,7 +88,7 @@ router.ws('/subscribe', (ws, req) => {
     });
 
     ws.on('close', function(msg) {
-        logger.info("client disconnected");
+        logger.info("client disconnected", _q.name);
         _q.destroy();
         _q = null;
     });
