@@ -72,7 +72,7 @@ router.ws('/subscribe', (ws, req) => {
     }
 
     //create exclusive queue and subscribe
-    var _q = null;
+    let _q = null;
     server.amqp.queue('', {exclusive: true}, (q) => {
         logger.info("client subscribed", q.name);
         _q = q;
@@ -88,6 +88,10 @@ router.ws('/subscribe', (ws, req) => {
     });
 
     ws.on('close', function(msg) {
+	if(!_q) {
+	    logger.info("websocket disconnected but client never subscribed"):
+	    return;
+	}
         logger.info("client disconnected", _q.name);
         _q.destroy();
         _q = null;
