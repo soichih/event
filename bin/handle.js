@@ -18,8 +18,6 @@ const config = require('../api/config');
 const logger = new winston.Logger(config.logger.winston);
 const db = require('../api/models');
 
-var amqp_conn = amqp.createConnection(config.event.amqp, {reconnectBackoffTime: 1000*10});
-var amqp_ready = false;
 var task_q = null;
 
 var mail_transporter = nodemailer.createTransport();
@@ -28,8 +26,15 @@ logger.debug("debug");
 db.init(function(err) {
     if(err) throw err;
     logger.info("db connected");
+    amqp_subscribe();
+});
+
+var amqp_connected = false;
+function amqp_subscribe() {
+    if(amqp_connected) return;
+    amqp_connected = true;
+    var amqp_conn = amqp.createConnection(config.event.amqp, {reconnectBackoffTime: 1000*10});
     amqp_conn.on('ready', function() {
-        amqp_ready = true;
         logger.info("amqp connection ready");
         
         //create queue to listen to events
@@ -46,11 +51,10 @@ db.init(function(err) {
         });
     });
     amqp_conn.on('error', function(err) {
-        amqp_ready = false;
         logger.error("amqp connection error");
         logger.error(err);
     });
-});
+}
 
 function handle(task, status, cb) {
 

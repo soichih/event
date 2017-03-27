@@ -62,47 +62,24 @@ router.get('/health', function(req, res) {
  *      You will receive an error event if you are not authorized
  *      
  */
+
 router.ws('/subscribe', (ws, req) => {
+
+    var q = null;
 
     if(!server.amqp) {
         ws.send(JSON.stringify({error: "amqp not connected"}));
         return;
     }
 
-    //create exclusive queue and subscribe
-    let _q = null;
-    server.amqp.queue('', {exclusive: true}, (q) => {
-        logger.info("client subscribed", q.name);
-        _q = q;
-        q.subscribe(function(msg, headers, dinfo, msgobj) {
-            ws.send(JSON.stringify({
-                headers: headers,
-                dinfo: dinfo,
-                msg: msg
-            }), function(err) {
-                if(err) logger.error(err);
-            });
-        });
-    });
-
-    ws.on('close', function(msg) {
-	if(!_q) {
-	    logger.info("websocket disconnected but client never subscribed");
-	    return;
-	}
-        logger.info("client disconnected", _q.name);
-        _q.destroy();
-        _q = null;
-    });
-
-    ws.on('message', function(json) {
-        var msg = JSON.parse(json); 
-        if(msg.bind) bind(msg);
-    });
-
     function bind(msg) {
-        //logger.debug("bind request received");
-        //logger.debug(msg);
+        if(!q) {
+            logger.debug("queue not ready.. postponing bind");
+            setTimeout(function() {
+                bind(msg);
+            }, 1000)
+            return;
+        }
 
         //TODO - should I handle keys as well as just key?
         var ex = msg.bind.ex;
@@ -113,13 +90,44 @@ router.ws('/subscribe', (ws, req) => {
             if(err) return logger.error(err);
             if(ok) {
                 //bind if client is still connected (sometimes they disappear)
-                if(_q) _q.bind(ex, key); 
+                if(q) q.bind(ex, key); 
             } else {
                 logger.debug("access denied", ex, key, req.query);
                 ws.send(JSON.stringify({error: "Access denided for ex:"+ex+" key:"+key}));
             }
         });
     }
+
+    ws.on('message', function(json) {
+        var msg = JSON.parse(json); 
+        if(msg.bind) {
+            logger.info("bind request recieved", msg);
+            bind(msg);
+        }
+    });
+
+    //create exclusive queue and subscribe
+    server.amqp.queue('', /*{exclusive: true},*/ (_q) => {
+        q = _q;
+
+        logger.info("created new queue", q.name);
+        q.subscribe(function(msg, headers, dinfo, msgobj) {
+            logger.info("subscribed to queue - replying", q.name);
+            ws.send(JSON.stringify({
+                headers: headers,
+                dinfo: dinfo,
+                msg: msg
+            }), function(err) {
+                if(err) logger.error(err);
+            });
+        });
+
+        ws.on('close', function(msg) {
+            logger.info("client disconnected", q.name);
+            q.destroy();
+        });
+    });
+
 });
 
 module.exports = router;
