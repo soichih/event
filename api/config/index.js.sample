@@ -28,7 +28,7 @@ exports.event = {
 
         "wf.task": function(req, key, cb) {
             //checking access for key
-	    var sub = key.split(".")[0];
+            var sub = key.split(".")[0];
             request.get({
                 url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
                 json: true,
@@ -40,7 +40,7 @@ exports.event = {
 
         "wf.instance": function(req, key, cb) {
             //checking access for key
-	    var sub = key.split(".")[0];
+            var sub = key.split(".")[0];
             request.get({
                 url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
                 json: true,

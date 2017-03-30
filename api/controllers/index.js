@@ -64,6 +64,9 @@ router.get('/health', function(req, res) {
  */
 
 router.ws('/subscribe', (ws, req) => {
+    logger.debug("websocket /subscribe called");
+    logger.debug(JSON.stringify(req.headers, null, 4));
+    logger.debug(JSON.stringify(req.query, null, 4));
 
     var q = null;
 
@@ -107,7 +110,8 @@ router.ws('/subscribe', (ws, req) => {
     });
 
     //create exclusive queue and subscribe
-    server.amqp.queue('', /*{exclusive: true},*/ (_q) => {
+    logger.info("creating new queue");
+    server.amqp.queue('', {exclusive: true, closeChannelOnUnsubscribe: true}, (_q) => {
         q = _q;
 
         logger.info("created new queue", q.name);
@@ -120,11 +124,12 @@ router.ws('/subscribe', (ws, req) => {
             }), function(err) {
                 if(err) logger.error(err);
             });
-        });
-
-        ws.on('close', function(msg) {
-            logger.info("client disconnected", q.name);
-            q.destroy();
+        }).addCallback(function(ok) {
+            ws.on('close', function(msg) {
+                logger.info("client disconnected", q.name);
+                //q.destroy();
+                q.unsubscribe(ok.consumerTag);
+            });
         });
     });
 
