@@ -20,7 +20,7 @@ const db = require('../api/models');
 
 var task_q = null;
 
-var mail_transporter = nodemailer.createTransport();
+var mail_transporter = nodemailer.createTransport(config.handler.mailer);
 logger.debug("debug");
 
 db.init(function(err) {

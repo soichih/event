@@ -68,7 +68,16 @@ exports.event = {
 exports.handler = {
     email: {
         from: "brlife@iu.edu",
-    }
+    },
+
+    mailer: {
+        host: 'mail-relay.iu.edu',
+        secure: true,
+        auth: {
+            user: 'brlife',
+            pass: fs.readFileSync(__dirname+'/smtp.password', {encoding: 'ascii'}).trim(),
+        }
+    },
 }
 
 exports.mongodb = "mongodb://localhost/event";
