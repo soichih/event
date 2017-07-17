@@ -111,11 +111,13 @@ router.ws('/subscribe', (ws, req) => {
 
     //create exclusive queue and subscribe
     logger.info("creating new queue");
+
+    //TODO - explain why the options?
     server.amqp.queue('', {exclusive: true, closeChannelOnUnsubscribe: true}, (_q) => {
         q = _q;
 
         logger.info("created new queue", q.name);
-        q.subscribe(function(msg, headers, dinfo, msgobj) {
+        q.subscribe(function(msg, headers, dinfo, ack) {
             logger.info("subscribed to queue - replying", q.name);
             ws.send(JSON.stringify({
                 headers: headers,

@@ -1,10 +1,7 @@
 'use strict';
 
-//node
 const fs = require('fs');
 const path = require('path');
-
-//contrib
 const express = require('express');
 const bodyParser = require('body-parser');
 const winston = require('winston');
@@ -13,7 +10,6 @@ const compression = require('compression');
 const cors = require('cors');
 const amqp = require('amqp');
 
-//mine
 const config = require('./config');
 const logger = new winston.Logger(config.logger.winston);
 const db = require('./models');

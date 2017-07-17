@@ -38,15 +38,15 @@ function amqp_subscribe() {
         logger.info("amqp connection ready");
         
         //create queue to listen to events
-        amqp_conn.queue('', {exclusive: true}, (q) => {
-            q.subscribe(function(msg, headers, dinfo, msgobj) {
+        amqp_conn.queue('event.task', {durable: true, autoDelete: false}, (q) => {
+            q.bind("wf.task", "#"); //bind to all task events
+            q.subscribe({ack: true}, function(msg, headers, dinfo, msgobj) {
                 handle(msg, msg.status, function(err) {
                     if(err) logger.error(err); //continue
                     logger.debug("task handled "+msg._id+" status: "+msg.status);
+                    q.shift();
                 });
             });
-            //bind to all..
-            q.bind("wf.task", "#");
             task_q = q;
         });
     });

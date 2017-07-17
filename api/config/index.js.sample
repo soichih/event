@@ -4,19 +4,19 @@ const fs = require('fs');
 const winston = require('winston');
 const request = require('request');
 
-const sca_host = "https://soichi7.ppa.iu.edu";
+const sca_host = "https://dev1.soichi.us";
 
 exports.sca = {
-    auth_api: "https://soichi7.ppa.iu.edu/api/auth",
+    auth_api: "https://dev1.soichi.us/api/auth",
 
     //jwt token used to access other services (like auth service)
-    jwt: fs.readFileSync(__dirname+'/sca.jwt'),
+    jwt: fs.readFileSync(__dirname+'/event.jwt', {encoding: 'ascii'}).trim(),
 }
 
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
 exports.event = {
     amqp: {
-        url: "amqp://event:eventpass123@soichi7.ppa:5672/sca"
+        url: "amqp://event:eventpass123@localhost:5672/brainlife"
     },
     
     //list of exchanges that this service supports and check_access cb
@@ -84,9 +84,6 @@ exports.mongodb = "mongodb://localhost/event";
 
 exports.express = {
     port: 12348,
-    //host: "soichi7.ppa",
-
-    //public key used to validate user requests
     pubkey: fs.readFileSync('/home/hayashis/git/auth/api/config/auth.pub'),
 }
 
