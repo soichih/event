@@ -50,6 +50,20 @@ exports.event = {
             });
         },
 
+        "warehouse.dataset": function(req, key, cb) {
+            //checking access for key
+            var project = key.split(".")[0];
+            console.log("checking warehouse.dataset access", project);
+            request.get({
+                url: sca_host+"/api/warehouse/event/checkaccess/project/"+project,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                cb(err, (body.status == "ok"));
+            });
+        },
+
+        /*
         "dicom.series": function(req, key, cb) {
             //checking access for key
             console.log("checking dicom.series access for "+key);
@@ -62,6 +76,7 @@ exports.event = {
                 cb(err, (body.status == "ok"));
             });
         }
+        */
     }
 }
 

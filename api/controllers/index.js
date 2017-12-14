@@ -55,8 +55,8 @@ router.get('/health', function(req, res) {
  *      Subscribe to AMQP. Once connected, you need to emit bind messages to bind to specific exchange:key.
  *      {
  *          "bind": { 
- *              "ex": "wf",
- *              "key": "task.123455.#",
+ *              "ex": "wf.task",
+ *              "key": "1.123455.#",
  *          }
  *      }
  *      You will receive an error event if you are not authorized
@@ -134,7 +134,6 @@ router.ws('/subscribe', (ws, req) => {
             });
         });
     });
-
 });
 
 module.exports = router;
