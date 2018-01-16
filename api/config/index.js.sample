@@ -3,8 +3,8 @@
 const fs = require('fs');
 const winston = require('winston');
 const request = require('request');
-
-const sca_host = "https://dev1.soichi.us";
+const jsonwebtoken = require('jsonwebtoken');
+const host = "https://dev1.soichi.us";
 
 exports.sca = {
     auth_api: "https://dev1.soichi.us/api/auth",
@@ -22,61 +22,84 @@ exports.event = {
     //list of exchanges that this service supports and check_access cb
     //in check_access, you can make 3rd party api call to check for user access
     //or just check the jwt sent from the client (TODO is this really possible via websocket?)
+
     exchanges: {
-        //wf: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
-        //other: fs.readFileSync('/home/hayashis/git/sca-wf/config/wf.pub'),
 
-        "wf.task": function(req, key, cb) {
-            //checking access for key
-            var sub = key.split(".")[0];
+        "wf.task": function(req, bind, cb) {
+            let instance_id = bind.key.split(".")[0];
             request.get({
-                url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
+                url: host+"/api/wf/event/checkaccess/instance/"+instance_id, json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                cb(err, (body.status == "ok"));
+            });
+           
+            //checking access for key
+            /*
+            var sub = bind.key.split(".")[0];
+            request.get({
+                url: host+"/api/wf/event/checkaccess/user/"+sub,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
                 cb(err, (body.status == "ok"));
             });
+            */
+            /*
+            var sub = bind.key.split(".")[0];
+            if(sub == req.user.sub) cb(null, true);
+            else cb(null, false);
+            */
         },
 
-        "wf.instance": function(req, key, cb) {
-            //checking access for key
-            var sub = key.split(".")[0];
+        "wf.instance": function(req, bind, cb) {
+            //TODO .. I currently don't have a good way to let user subscribe to *all* instances that
+            //user has access to .. like "*.*". 
+            //since instance doesn't contain important info (other than name / status).. so let's make
+            //it wide open until I can figure out how to apply access control (I think I need to 
+            //query all instances that user has access to, and make amqp subscribe to each?
+            cb(null, true);
+
+            /*
+            let instance = bind.key.split(".")[0];
             request.get({
-                url: sca_host+"/api/wf/event/checkaccess/user/"+sub,
+                url: host+"/api/wf/event/checkaccess/instance/"+instance, json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                cb(err, (body.status == "ok"));
+            });
+            */
+            
+            //checking access for key
+            /*
+            var sub = bind.key.split(".")[0];
+            request.get({
+                url: host+"/api/wf/event/checkaccess/user/"+sub,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
                 cb(err, (body.status == "ok"));
             });
+            */
+            /*
+            var sub = bind.key.split(".")[0];
+            if(sub == req.user.sub) cb(null, true);
+            else cb(null, false);
+            */
         },
 
-        "warehouse.dataset": function(req, key, cb) {
+        "warehouse.dataset": function(req, bind, cb) {
             //checking access for key
-            var project = key.split(".")[0];
+            var project = bind.key.split(".")[0];
             console.log("checking warehouse.dataset access", project);
             request.get({
-                url: sca_host+"/api/warehouse/event/checkaccess/project/"+project,
+                url: host+"/api/warehouse/event/checkaccess/project/"+project,
                 json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
                 cb(err, (body.status == "ok"));
             });
         },
-
-        /*
-        "dicom.series": function(req, key, cb) {
-            //checking access for key
-            console.log("checking dicom.series access for "+key);
-            request.get({
-                url: sca_host+"/api/dicom/event/checkaccess/series/"+key,
-                json: true,
-                headers: {'Authorization': 'Bearer '+req.query.jwt}
-            }, function(err, res, body) {
-                console.dir(body);
-                cb(err, (body.status == "ok"));
-            });
-        }
-        */
     }
 }
 

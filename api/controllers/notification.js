@@ -4,7 +4,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('express-jwt');
-const jsonwebtoken = require('jsonwebtoken');
 const winston = require('winston');
 
 //mine

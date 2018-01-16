@@ -5,6 +5,8 @@ const express = require('express');
 const router = express.Router();
 const winston = require('winston');
 const mongoose = require('mongoose');
+//const jwt = require('express-jwt');
+const jwt = require('jsonwebtoken');
 
 //mine
 const config = require('../config');
@@ -13,6 +15,10 @@ const logger = new winston.Logger(config.logger.winston);
 const db = require('../models');
 
 router.use('/notification', require('./notification'));
+
+function json(obj) {
+    return JSON.stringify(obj);
+}
 
 /**
  * @apiGroup System
@@ -65,75 +71,64 @@ router.get('/health', function(req, res) {
 
 router.ws('/subscribe', (ws, req) => {
     logger.debug("websocket /subscribe called");
-    logger.debug(JSON.stringify(req.headers, null, 4));
-    logger.debug(JSON.stringify(req.query, null, 4));
-
-    var q = null;
+    //logger.debug(JSON.stringify(req.headers, null, 4));
+    //logger.debug(JSON.stringify(req.query, null, 4));
 
     if(!server.amqp) {
-        ws.send(JSON.stringify({error: "amqp not connected"}));
+        ws.send(json({error: "amqp not (yet) connected"}));
         return;
     }
 
-    function bind(msg) {
-        if(!q) {
-            logger.debug("queue not ready.. postponing bind");
-            setTimeout(function() {
-                bind(msg);
-            }, 1000)
-            return;
-        }
+    //parse jwt
+    jwt.verify(req.query.jwt, config.express.pubkey, (err, user)=>{
+        if(err) return logger.error(err);
+        logger.debug(user);
+        req.user = user; //pretent it like express-jwt()
 
-        //TODO - should I handle keys as well as just key?
-        var ex = msg.bind.ex;
-        var key = msg.bind.key;
-        if(!config.event.exchanges[ex]) return logger.warn("unconfigured bind request for exchange:"+ex);
-        var access_check = config.event.exchanges[ex];
-        access_check(req, key, function(err, ok) {
-            if(err) return logger.error(err);
-            if(ok) {
-                //bind if client is still connected (sometimes they disappear)
-                if(q) q.bind(ex, key); 
-            } else {
-                logger.debug("access denied", ex, key, req.query);
-                ws.send(JSON.stringify({error: "Access denided for ex:"+ex+" key:"+key}));
+        //receive request from client
+        ws.on('message', function(_msg) {
+            var msg = JSON.parse(_msg); 
+            if(msg.bind) {
+                logger.info("bind request recieved", msg);
+                var ex = msg.bind.ex;
+                if(!config.event.exchanges[ex]) return logger.warn("unconfigured bind request for exchange:"+ex);
+
+                //do access check for this bind request
+                logger.debug("checking access");
+                var access_check = config.event.exchanges[ex];
+                access_check(req, msg.bind, function(err, ok) {
+                    if(err) return logger.error(err);
+                    if(!ok) {
+                        logger.debug("access denied", msg.bind);
+                        ws.send(json({error: "Access denided"}));
+                        return;
+                    }
+
+                    //good.. proceed with creating new queue / bind
+                    //TODO - explain why the options?
+                    server.amqp.queue('', {exclusive: true, closeChannelOnUnsubscribe: true}, (q) => {
+                        q.bind(ex, msg.bind.key); 
+                        q.subscribe(function(msg, headers, dinfo, ack) {
+                            logger.debug("received event!", dinfo);
+                            //logger.debug(msg, headers);
+                            ws.send(json({
+                                headers,
+                                dinfo,
+                                msg,
+                            }));
+
+                        }).addCallback(function(ok) {
+                            ws.on('close', function(msg) {
+                                logger.info("client disconnected", q.name);
+                                q.unsubscribe(ok.consumerTag);
+                            });
+                        });
+                    });
+                });
             }
         });
-    }
+    });   
 
-    ws.on('message', function(json) {
-        var msg = JSON.parse(json); 
-        if(msg.bind) {
-            logger.info("bind request recieved", msg);
-            bind(msg);
-        }
-    });
-
-    //create exclusive queue and subscribe
-    logger.info("creating new queue");
-
-    //TODO - explain why the options?
-    server.amqp.queue('', {exclusive: true, closeChannelOnUnsubscribe: true}, (_q) => {
-        q = _q;
-
-        logger.info("created new queue", q.name);
-        q.subscribe(function(msg, headers, dinfo, ack) {
-            logger.info("subscribed to queue - replying", q.name);
-            ws.send(JSON.stringify({
-                headers: headers,
-                dinfo: dinfo,
-                msg: msg
-            }), function(err) {
-                if(err) logger.error(err);
-            });
-        }).addCallback(function(ok) {
-            ws.on('close', function(msg) {
-                logger.info("client disconnected", q.name);
-                //q.destroy();
-                q.unsubscribe(ok.consumerTag);
-            });
-        });
-    });
 });
 
 module.exports = router;

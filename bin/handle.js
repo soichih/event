@@ -101,7 +101,11 @@ function handle_task(notification, task, cb) {
     logger.debug(task);
     switch(notification.handler) {
     case "email": 
-        handle_task_email(notification.config, task, cb); break;
+        handle_task_email(notification.config, task, err=>{
+            if(err) logger.error(err); //continue..
+            cb();
+        }); 
+        break;
     default:
         return cb("unknown notification handler:"+notification.handler);
     }
@@ -110,11 +114,21 @@ function handle_task(notification, task, cb) {
 function handle_task_email(_config, task, cb) {
     //lookup submitter's auth profile
     request.get({
-        url: config.sca.auth_api+"/user/"+task.user_id,
+        url: config.sca.auth_api+"/users/",
+        body: {
+            where: JSON.stringify({
+                _id: task.user_id,
+            })
+        },
         json: true,
         headers: { 'Authorization': 'Bearer '+config.sca.jwt }
-    }, function(err, res, profile) {
-        logger.debug("sending email to "+profile.email);
+    }, function(err, res, users) {
+        if(err) return cb(err);
+        if(users.length != 1) return cb("couldn't find:"+task.user_id);
+        let user = users[0];
+        if(!user.email) return cb("user "+user._id+" doesn't have email set.. can't send notification");
+        
+        //logger.debug("sending email to "+profile.email);
         mail_transporter.sendMail({
             from: config.handler.email.from,
             to: profile.email,
