@@ -28,28 +28,20 @@ function json(obj) {
  * @apiSuccess {String} status 'ok' or 'failed'
  */
 router.get('/health', function(req, res) {
-    var ret = {
-        status: "ok",
-        amqp_connection: server.amqp?true:false, 
-        mongoose: mongoose.connection.readyState
-    }
-    if(mongoose.connection.readyState != 1) ret.status = "failed";
-    if(!server.amqp) ret.status = "failed";
+    var status = "ok";
+    var message = "all working good";
+
+    var amqp_connected = (server.amqp != null);
+    if(!amqp_connected) status = "failed";
+    if(mongoose.connection.readyState != 1) status = "failed";
 
     //do real db test
     db.Notification.findOne().exec(function(err, record) {
         if(err) {
-            ret.status = "failed";
-            ret.message = err;
+            status = "failed";
+            message = err;
         }
-        /* - not necessary?
-        if(!record) {
-            ret.status = "failed";
-            ret.message = "no instance from db";
-        }
-        */
-        if(ret.status != "ok") logger.debug(ret);
-        res.json(ret);
+        res.json({ status, amqp_connected, mongoose: mongoose.connection.readyState, message });
     });
 });
 

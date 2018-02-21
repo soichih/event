@@ -53,12 +53,20 @@ exports.event = {
         },
 
         "wf.instance": function(req, bind, cb) {
-            //TODO .. I currently don't have a good way to let user subscribe to *all* instances that
-            //user has access to .. like "*.*". 
-            //since instance doesn't contain important info (other than name / status).. so let's make
-            //it wide open until I can figure out how to apply access control (I think I need to 
-            //query all instances that user has access to, and make amqp subscribe to each?
-            cb(null, true);
+            let group_id = bind.key.split(".")[0];
+
+            //(TODO - DEPRECATE THIS) 
+            //old processes didn't belong to any group, so it's hard to access control..
+            //let's make it wide open -- as it will be deprecated soon
+            if(group_id == "na") return cb(null, true); 
+
+            //check for group access in req.user
+            group_id = parseInt(group_id); //gids are integers..
+            if(req.user && req.user.gids && ~req.user.gids.indexOf(group_id)) {
+                return cb(null, true);
+            }
+            
+            cb(null, false);
 
             /*
             let instance = bind.key.split(".")[0];
