@@ -29,11 +29,17 @@ function json(obj) {
  */
 router.get('/health', function(req, res) {
     var status = "ok";
-    var message = "all working good";
+    var message = "all good";
 
     var amqp_connected = (server.amqp != null);
-    if(!amqp_connected) status = "failed";
-    if(mongoose.connection.readyState != 1) status = "failed";
+    if(!amqp_connected) {
+        status = "failed";
+        message = "amqp disconnected";
+    }
+    if(mongoose.connection.readyState != 1) {
+        status = "failed";
+        message = "mongo not ready";
+    }
 
     //do real db test
     db.Notification.findOne().exec(function(err, record) {
@@ -41,7 +47,7 @@ router.get('/health', function(req, res) {
             status = "failed";
             message = err;
         }
-        res.json({ status, amqp_connected, mongoose: mongoose.connection.readyState, message });
+        res.json({ status, amqp_connected, mongoose_readystate: mongoose.connection.readyState, message });
     });
 });
 

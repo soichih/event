@@ -58,9 +58,13 @@ exports.start = function(cb) {
         exports.amqp = amqp_conn;
     });
     amqp_conn.on('error', function(err) {
+        /*
         logger.error("amqp connection error");
         logger.error(err);
         exports.amqp = null; //should I?
+        */
+        //(re)connection error? let's restart
+        throw new Error(err);
     });
 
     var port = process.env.PORT || config.express.port || '8081';
