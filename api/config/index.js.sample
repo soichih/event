@@ -16,7 +16,7 @@ exports.sca = {
 //warning.. you don't get error message if your user/pass etc. are incorrect (it just keeps retrying silently..)
 exports.event = {
     amqp: {
-        url: "amqp://event:eventpass123@localhost:5672/brainlife"
+        url: "amqp://event:gobrain@localhost:5672/brainlife"
     },
     
     //list of exchanges that this service supports and check_access cb
@@ -28,7 +28,7 @@ exports.event = {
         "wf.task": function(req, bind, cb) {
             let instance_id = bind.key.split(".")[0];
             request.get({
-                url: host+"/api/wf/event/checkaccess/instance/"+instance_id, json: true,
+                url: host+"/api/amaretti/event/checkaccess/instance/"+instance_id, json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
                 cb(err, (body.status == "ok"));
@@ -62,38 +62,12 @@ exports.event = {
 
             //check for group access in req.user
             group_id = parseInt(group_id); //gids are integers..
+            //console.log("wf.instance check", group_id, req.user.gids);
             if(req.user && req.user.gids && ~req.user.gids.indexOf(group_id)) {
                 return cb(null, true);
             }
             
             cb(null, false);
-
-            /*
-            let instance = bind.key.split(".")[0];
-            request.get({
-                url: host+"/api/wf/event/checkaccess/instance/"+instance, json: true,
-                headers: {'Authorization': 'Bearer '+req.query.jwt}
-            }, function(err, res, body) {
-                cb(err, (body.status == "ok"));
-            });
-            */
-            
-            //checking access for key
-            /*
-            var sub = bind.key.split(".")[0];
-            request.get({
-                url: host+"/api/wf/event/checkaccess/user/"+sub,
-                json: true,
-                headers: {'Authorization': 'Bearer '+req.query.jwt}
-            }, function(err, res, body) {
-                cb(err, (body.status == "ok"));
-            });
-            */
-            /*
-            var sub = bind.key.split(".")[0];
-            if(sub == req.user.sub) cb(null, true);
-            else cb(null, false);
-            */
         },
 
         "warehouse.dataset": function(req, bind, cb) {
