@@ -18,4 +18,4 @@ EXPOSE 8080
 CMD [ "/app/docker/start.sh" ]
 
 COPY . /app
-RUN cd /app && npm install --production && cd ui && npm install --production
+RUN cd /app && npm install --production 

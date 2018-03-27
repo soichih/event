@@ -41,11 +41,13 @@ app.use(function(err, req, res, next) {
     res.json(err);
 });
 
+/* let it restart..
 process.on('uncaughtException', function (err) {
     //TODO report this to somewhere!
     logger.error((new Date).toUTCString() + ' uncaughtException:', err.message)
     logger.error(err.stack)
 });
+*/
 
 exports.app = app;
 exports.amqp = null;
