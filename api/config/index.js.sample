@@ -31,6 +31,7 @@ exports.event = {
                 url: host+"/api/amaretti/event/checkaccess/instance/"+instance_id, json: true,
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
+                console.dir(host);
                 cb(err, (body.status == "ok"));
             });
            
@@ -74,6 +75,19 @@ exports.event = {
             //checking access for key
             var project = bind.key.split(".")[0];
             console.log("checking warehouse.dataset access", project);
+            request.get({
+                url: host+"/api/warehouse/event/checkaccess/project/"+project,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                cb(err, (body.status == "ok"));
+            });
+        },
+
+        "warehouse.rule": function(req, bind, cb) {
+            //checking access for key
+            var project = bind.key.split(".")[0];
+            console.log("checking warehouse.rule access", project);
             request.get({
                 url: host+"/api/warehouse/event/checkaccess/project/"+project,
                 json: true,

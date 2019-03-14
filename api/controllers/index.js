@@ -69,9 +69,6 @@ router.get('/health', function(req, res) {
 
 router.ws('/subscribe', (ws, req) => {
     logger.debug("websocket /subscribe called");
-    //logger.debug(JSON.stringify(req.headers, null, 4));
-    //logger.debug(JSON.stringify(req.query, null, 4));
-
     if(!server.amqp) {
         ws.send(json({error: "amqp not (yet) connected"}));
         return;
@@ -98,7 +95,7 @@ router.ws('/subscribe', (ws, req) => {
                     if(err) return logger.error(err);
                     if(!ok) {
                         logger.debug("access denied", msg.bind);
-                        ws.send(json({error: "Access denided"}));
+                        ws.send(json({error: "Access denided "+ex}));
                         return;
                     }
 
