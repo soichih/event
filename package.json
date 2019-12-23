@@ -20,22 +20,22 @@
   },
   "homepage": "https://github.com/soichih/sca-event#readme",
   "dependencies": {
-    "amqp": "^0.2.6",
-    "async": "^2.6.0",
-    "body-parser": "^1.18.2",
-    "compression": "^1.7.2",
-    "cors": "^2.8.4",
-    "express": "^4.16.2",
+    "amqp": "^0.2.7",
+    "async": "^2.6.3",
+    "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
     "express-jwt": "^5.3.0",
-    "express-winston": "^2.5.0",
+    "express-winston": "^2.6.0",
     "express-ws": "^3.0.0",
-    "jsonwebtoken": "^8.2.0",
-    "mongoose": "^4.13.11",
-    "nodemailer": "^4.6.0",
-    "request": "^2.83.0",
-    "winston": "^2.4.0"
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^4.13.19",
+    "nodemailer": "^4.7.0",
+    "request": "^2.88.0",
+    "winston": "^2.4.4"
   },
   "devDependencies": {
-    "supertest": "^3.0.0"
+    "supertest": "^3.4.2"
   }
 }

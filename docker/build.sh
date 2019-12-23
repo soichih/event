@@ -1,4 +1,4 @@
-tag=1.1.1
+tag=1.2.0
 docker build -t soichih/event ..
 if [ ! $? -eq 0 ]; then
     echo "failed to build"

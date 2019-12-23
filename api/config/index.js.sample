@@ -25,6 +25,7 @@ exports.event = {
 
     exchanges: {
 
+        //deprecated by amaretti
         "wf.task": function(req, bind, cb) {
             let instance_id = bind.key.split(".")[0];
             request.get({
@@ -53,6 +54,7 @@ exports.event = {
             */
         },
 
+        //deprecated by amaretti
         "wf.instance": function(req, bind, cb) {
             let group_id = bind.key.split(".")[0];
 
@@ -71,6 +73,7 @@ exports.event = {
             cb(null, false);
         },
 
+        //deprecated by warehouse ex
         "warehouse.dataset": function(req, bind, cb) {
             //checking access for key
             var project = bind.key.split(".")[0];
@@ -84,6 +87,8 @@ exports.event = {
             });
         },
 
+        //deprecated by warehouse ex
+        /*
         "warehouse.rule": function(req, bind, cb) {
             //checking access for key
             var project = bind.key.split(".")[0];
@@ -94,6 +99,37 @@ exports.event = {
                 headers: {'Authorization': 'Bearer '+req.query.jwt}
             }, function(err, res, body) {
                 cb(err, (body.status == "ok"));
+            });
+        },
+        */
+
+        "warehouse": function(req, bind, cb) {
+            let keys = bind.key.split(".");
+            let collection = keys[0];
+            let action = keys[1];
+            let sub = null;
+            let project = null;
+            if(collection == "dataset") {
+                sub = keys[2];
+                project = keys[3];
+            }
+            if(collection == "project") {
+                project = keys[2];
+            }
+            if(collection == "rule") {
+                project = keys[2];
+            }
+
+            if(!project) return cb("invalid event");
+
+            console.debug("checking warehouse ex access", bind.key);
+            request.get({
+                url: host+"/api/warehouse/event/checkaccess/project/"+project,
+                json: true,
+                headers: {'Authorization': 'Bearer '+req.query.jwt}
+            }, function(err, res, body) {
+                if(err) return cb(err);
+                cb(null, (body.status == "ok"));
             });
         },
     }

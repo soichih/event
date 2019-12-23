@@ -105,7 +105,6 @@ router.ws('/subscribe', (ws, req) => {
                         q.bind(ex, msg.bind.key); 
                         q.subscribe(function(msg, headers, dinfo, ack) {
                             logger.debug("received event!", dinfo);
-                            //logger.debug(msg, headers);
                             ws.send(json({
                                 headers,
                                 dinfo,
@@ -123,7 +122,6 @@ router.ws('/subscribe', (ws, req) => {
             }
         });
     });   
-
 });
 
 module.exports = router;
