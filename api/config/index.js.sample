@@ -114,10 +114,12 @@ exports.event = {
                 project = keys[3];
             }
             if(collection == "project") {
-                project = keys[2];
+                sub = keys[2];
+                project = keys[3];
             }
             if(collection == "rule") {
-                project = keys[2];
+                sub = keys[2];
+                project = keys[3];
             }
 
             if(!project) return cb("invalid event");

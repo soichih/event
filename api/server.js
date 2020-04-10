@@ -41,14 +41,6 @@ app.use(function(err, req, res, next) {
     res.json(err);
 });
 
-/* let it restart..
-process.on('uncaughtException', function (err) {
-    //TODO report this to somewhere!
-    logger.error((new Date).toUTCString() + ' uncaughtException:', err.message)
-    logger.error(err.stack)
-});
-*/
-
 exports.app = app;
 exports.amqp = null;
 exports.start = function(cb) {
@@ -60,11 +52,6 @@ exports.start = function(cb) {
         exports.amqp = amqp_conn;
     });
     amqp_conn.on('error', function(err) {
-        /*
-        logger.error("amqp connection error");
-        logger.error(err);
-        exports.amqp = null; //should I?
-        */
         //(re)connection error? let's restart
         throw new Error(err);
     });
